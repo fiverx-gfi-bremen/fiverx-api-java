@@ -1,0 +1,39 @@
+fiverx-api
+Copyright 2015 VSA GmbH
+
+
+=========================================================================
+==  Apache Notice                                                      ==
+=========================================================================
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+=========================================================================
+==  Bouncy Castle Notice                                               ==
+=========================================================================
+This product includes software which was developed by the Bouncy Castle project.
+Copyright (c) 2000-2005 The Legion Of The Bouncy Castle (http://www.bouncycastle.org)
+
+=========================================================================
+==  Groovy                                                             ==
+=========================================================================
+This product includes software developed by
+The Groovy community (http://groovy.codehaus.org/).
+
+=========================================================================
+==  Gradle                                                             ==
+=========================================================================
+This product includes software developed by
+Gradleware (http://www.gradle.org/).
+
+=========================================================================
+==  JUnit                                                              ==
+=========================================================================
+This product includes software developed by
+The JUnit Community (https://github.com/junit-team/junit)
+
+=========================================================================
+==  SLF4J                                                              ==
+=========================================================================
+This product includes software developed by
+The SLF4J Community (http://www.slf4j.org)

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="ISO-8859-15" standalone="yes"?>
+
+<purchaseOrder>
+  <Order>
+    <Item>book über Döner und Dürüm</Item>
+    <Id>123-958-74598</Id>
+    <Quantity>12</Quantity>
+  </Order>
+  <Payment>
+    <CardId>123654-8988889-9996874</CardId>
+    <CardName>visa</CardName>
+    <ValidDate>12-10-2004</ValidDate>
+  </Payment>
+</purchaseOrder>
