@@ -2,16 +2,24 @@ Installation:
 -------------
 
 1.) JDK 1.7 or higher must be installed and JAVA_HOME should point to this installation.
+
 2.) We are using strong java cryptography, not suitable for the NSA ;-)
     Install the unlimited JCE policy http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html or change the key length within
     de.vsa.fiverx.poc.plain.crypto.AesCryptoHelper from 256 to 128
-3.) If you are behind a proxy, edit 'gradle.properties' to ensure connectivity
+
+3.) If you are behind a proxy, create or edit 'gradle.properties' within the project directory to ensure connectivity
+    Example of content with proxy settings for http and https:
+        systemProp.http.proxyHost=my.proxy
+        systemProp.http.proxyPort=8080
+        systemProp.https.proxyHost=my.proxy
+        systemProp.https.proxyPort=8080
+
 4.) Call 'gradlew test' on Linux or Mac. Call 'gradlew.bat test' on Windows.
     The wrapper will download and install gradle and all needed libraries. The project is compiled and the tests will run. You can see the test report when opening
     build/reports/tests/index.html .
 
 optional:
-5.) When working with the best IDE, call 'gradlew idea' or just import the build.gradle file as a new project. Otherwise call 'gradlew eclipse' and use eclipse.
+5.) When working with the best IDE, call 'gradlew idea' or (better) just import the build.gradle file as a new project. Otherwise call 'gradlew eclipse' and use eclipse.
 
 
 Some more information:
@@ -37,5 +45,5 @@ crypto/client/client-store.p12      : the clients pkcs12 keystore containing the
 
 crypto/intermediate/client.csr      : the clients certifcates signing request
 
-de.vsa.fiverx.poc.plain             : a package with classes for dealing with plain cryptography (read keys from keystore, create session keys, encrypt, decrypt, sing, verify signature
-de.vsa.fiverx.poc.xml.PoorXmlTest   : some kind of 'poor' XML test using apache sanctuario. Just a quick hack... more to come...
+de.vsa.fiverx.crypto.plain          : a package with classes for dealing with plain cryptography (read keys from keystore, create session keys, encrypt, decrypt, sing, verify signature
+de.vsa.fiverx.crypto.xml            : a package with classes for dealing wiht xml security
