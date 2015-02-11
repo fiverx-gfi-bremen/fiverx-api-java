@@ -40,5 +40,6 @@ dependencies {
     testCompile     group: 'junit',                     name: 'junit',          version: '4.11'
 }
 
+// only essential when building releases; point your bootstrap classpath to a JDK 7 installation to avoid compile warnings
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
