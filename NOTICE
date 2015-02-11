@@ -13,27 +13,32 @@ The Apache Software Foundation (http://www.apache.org/).
 =========================================================================
 This product includes software which was developed by the Bouncy Castle project.
 Copyright (c) 2000-2005 The Legion Of The Bouncy Castle (http://www.bouncycastle.org)
+distributed under the MIT X11 license
 
 =========================================================================
 ==  Groovy                                                             ==
 =========================================================================
 This product includes software developed by
 The Groovy community (http://groovy.codehaus.org/).
+distributed under the Apache License, Version 2.0
 
 =========================================================================
 ==  Gradle                                                             ==
 =========================================================================
 This product includes software developed by
 Gradleware (http://www.gradle.org/).
+distributed under the Apache License, Version 2.0
 
 =========================================================================
 ==  JUnit                                                              ==
 =========================================================================
 This product includes software developed by
 The JUnit Community (https://github.com/junit-team/junit)
+distributed under Eclipse Public License 1.0
 
 =========================================================================
 ==  SLF4J                                                              ==
 =========================================================================
 This product includes software developed by
 The SLF4J Community (http://www.slf4j.org)
+distributed under the MIT license
