@@ -7,7 +7,9 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
 /**
- * Author: Pascal Knueppel Date: 18.02.2015 Time: 17:21
+ * Author: Pascal Knueppel
+ * Date: 18.02.2015
+ * Time: 17:21
  */
 public interface XmlSigningHelper {
 

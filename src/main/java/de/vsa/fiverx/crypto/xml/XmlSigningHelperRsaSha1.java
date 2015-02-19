@@ -23,6 +23,11 @@ import java.util.UUID;
  * Time: 17:24
  */
 public class XmlSigningHelperRsaSha1 implements XmlSigningHelper{
+
+    static {
+        org.apache.xml.security.Init.init();
+    }
+
     @Override
     public void addSignatureToDocument (Document document, PrivateKey signingKey, X509Certificate signingCertificate)
             throws XMLSecurityException {
