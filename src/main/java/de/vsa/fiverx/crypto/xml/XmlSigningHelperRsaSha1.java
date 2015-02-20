@@ -96,6 +96,9 @@ public class XmlSigningHelperRsaSha1 implements XmlSigningHelper{
         assert sigElement != null;
 
         Element rootElement = document.getDocumentElement();
+        // it is necessary to register the sigId-Attribute if the document is moved over system boundaries like from
+        // a client to a server. Otherwise the reference-number cannot be validated.
+        rootElement.setIdAttributeNS(null, "sigId", true);
         // do not build the hash over the signature element. Therefore remove it from the document.
         rootElement.removeChild(sigElement);
 
