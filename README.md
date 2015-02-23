@@ -1,12 +1,12 @@
 # Installation
 
-1. JDK 1.7 or higher must be installed and JAVA_HOME should point to this installation.
+1. JDK 1.7 or higher must be installed and <code>JAVA_HOME</code> should point to this installation.
 
 1. We are using strong java cryptography, not suitable for the NSA ;-)
     Install the unlimited JCE policy http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html or change the key length within
-    de.vsa.fiverx.poc.plain.crypto.AesCryptoHelper from 256 to 128
+    <code>de.vsa.fiverx.poc.plain.crypto.AesCryptoHelper</code> from 256 to 128
 
-1. If you are behind a proxy, create or edit 'gradle.properties' within the project directory to ensure connectivity
+1. If you are behind a proxy, create or edit <code>gradle.properties</code> within the project directory to ensure connectivity
    Example of content with proxy settings for http and https:
    ```
         systemProp.http.proxyHost=my.proxy
@@ -24,7 +24,7 @@
 
 # Some more information
 
-You can find some keys, certificates and keystores in differnt formats within src/main/resources/crypto. The readme.txt file there describes the way they were created.
+You can find some keys, certificates and keystores in differnt formats within <code>src/main/resources/crypto</code>. The <code>readme.txt</code> file there describes the way they were created.
 The keystore passwords are the same as the client key passwords.
 
 This a pure Java API. Groovy is used for testing convenience, only.
