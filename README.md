@@ -2,11 +2,11 @@
 
 1. JDK 1.7 or higher must be installed and <code>JAVA_HOME</code> should point to this installation.
 
-1. We are using strong java cryptography, not suitable for the NSA ;-)
+2. We are using strong java cryptography, not suitable for the NSA ;-)
     Install the unlimited JCE policy http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html or change the key length within
     <code>de.fiverx.poc.plain.crypto.AesCryptoHelper</code> from 256 to 128
 
-1. If you are behind a proxy, create or edit <code>gradle.properties</code> within the project directory to ensure connectivity
+3. If you are behind a proxy, create or edit <code>gradle.properties</code> within the project directory to ensure connectivity
    Example of content with proxy settings for http and https:
    ```
         systemProp.http.proxyHost=my.proxy
@@ -15,12 +15,13 @@
         systemProp.https.proxyPort=8080
     ```
 
-1. Call 'gradlew test' on Linux or Mac. Call 'gradlew.bat test' on Windows.
+4. Call 'gradlew test' on Linux or Mac. Call 'gradlew.bat test' on Windows.
     The wrapper will download and install gradle and all needed libraries. The project is compiled and the tests will run. You can see the test report when opening
     <code>build/reports/tests/index.html</code>.
 
-1. (optional) When working with the best IDE, call 'gradlew idea' or (better) just import the build.gradle file as a new project. Otherwise call 'gradlew eclipse' and use eclipse.
+5. (optional) When working with the best IDE, call 'gradlew idea' or (better) just import the build.gradle file as a new project. Otherwise call 'gradlew eclipse' and use eclipse.
 
+6. If you want to publish the project into the local maven repository call 'gradlew publishToMavenLocal' or 'gradlew publish' to publish to a local directory within your build directory
 
 # Some more information
 
