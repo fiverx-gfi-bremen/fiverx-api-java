@@ -21,7 +21,7 @@ apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
 project.version = '0.1-SNAPSHOT'
-project.group = 'de.vsa.fiverx'
+project.group = 'de.fiverx'
 
 task sourceJar(type: Jar) {
     from sourceSets.main.allJava

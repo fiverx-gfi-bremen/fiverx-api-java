@@ -4,7 +4,7 @@
 
 1. We are using strong java cryptography, not suitable for the NSA ;-)
     Install the unlimited JCE policy http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html or change the key length within
-    <code>de.vsa.fiverx.poc.plain.crypto.AesCryptoHelper</code> from 256 to 128
+    <code>de.fiverx.poc.plain.crypto.AesCryptoHelper</code> from 256 to 128
 
 1. If you are behind a proxy, create or edit <code>gradle.properties</code> within the project directory to ensure connectivity
    Example of content with proxy settings for http and https:
@@ -46,5 +46,5 @@ This a pure Java API. Groovy is used for testing convenience, only.
 | | |
 | <code>crypto/intermediate/client.csr</code>      | the clients certifcates signing request |
 | | |
-| <code>de.vsa.fiverx.crypto.plain</code>          | a package with classes for dealing with plain cryptography (read keys from keystore, create session keys, encrypt, decrypt, sing, verify signature |
-| <code>de.vsa.fiverx.crypto.xml</code>            | a package with classes for dealing wiht xml security |
+| <code>de.fiverx.crypto.plain</code>          | a package with classes for dealing with plain cryptography (read keys from keystore, create session keys, encrypt, decrypt, sing, verify signature |
+| <code>de.fiverx.crypto.xml</code>            | a package with classes for dealing wiht xml security |
