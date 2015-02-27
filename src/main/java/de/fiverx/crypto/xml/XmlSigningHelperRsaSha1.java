@@ -63,8 +63,8 @@ public class XmlSigningHelperRsaSha1 implements XmlSigningHelper{
 
         // The UUID is needed to reference the signature to the signed elements.
         String id = UUID.randomUUID().toString();
-        rootElement.setAttributeNS(null, "sigId", id);
-        rootElement.setIdAttributeNS(null, "sigId", true);
+        rootElement.setAttributeNS(null, signatureIdAttribute, id);
+        rootElement.setIdAttributeNS(null, signatureIdAttribute, true);
         Transforms transforms = new Transforms(document);
         transforms.addTransform(canonicalizationMethod);
         String messageDigestAlgorithm = MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA1;
@@ -98,7 +98,7 @@ public class XmlSigningHelperRsaSha1 implements XmlSigningHelper{
         Element rootElement = document.getDocumentElement();
         // it is necessary to register the sigId-Attribute if the document is moved over system boundaries like from
         // a client to a server. Otherwise the reference-number cannot be validated.
-        rootElement.setIdAttributeNS(null, "sigId", true);
+        rootElement.setIdAttributeNS(null, signatureIdAttribute, true);
         // do not build the hash over the signature element. Therefore remove it from the document.
         rootElement.removeChild(sigElement);
 
