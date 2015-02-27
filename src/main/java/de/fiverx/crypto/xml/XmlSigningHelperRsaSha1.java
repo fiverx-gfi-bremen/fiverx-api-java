@@ -47,6 +47,8 @@ public class XmlSigningHelperRsaSha1 implements XmlSigningHelper{
         org.apache.xml.security.Init.init();
     }
 
+    private static final String signatureIdAttribute = "ID";
+
     @Override
     public void addSignatureToDocument (Document document, PrivateKey signingKey, X509Certificate signingCertificate)
             throws XMLSecurityException {
