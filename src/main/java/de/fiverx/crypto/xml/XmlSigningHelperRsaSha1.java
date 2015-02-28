@@ -71,7 +71,7 @@ public class XmlSigningHelperRsaSha1 implements XmlSigningHelper{
         transforms.addTransform(canonicalizationMethod);
         String messageDigestAlgorithm = MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA1;
         // generate the digest values and them to the document
-        xmlSignature.addDocument("#" + id , transforms, messageDigestAlgorithm);
+        xmlSignature.addDocument("" , transforms, messageDigestAlgorithm, id, null);
         // sign the added digest values.
         xmlSignature.sign(signingKey);
         // append the signature to the document into the root-element.
