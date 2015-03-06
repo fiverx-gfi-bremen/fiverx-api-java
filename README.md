@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/fiverx/fiverx-api-java.svg?branch=master)](https://travis-ci.org/fiverx/fiverx-api-java)
+
 # Installation
 
 1. JDK 1.7 or higher must be installed and <code>JAVA_HOME</code> should point to this installation.
