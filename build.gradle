@@ -46,3 +46,5 @@ dependencies {
 // only essential when building releases; point your bootstrap classpath to a JDK 7 installation to avoid compile warnings
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
+
+[compileJava, compileTestJava, compileGroovy, compileTestGroovy]*.options*.encoding = 'UTF-8'

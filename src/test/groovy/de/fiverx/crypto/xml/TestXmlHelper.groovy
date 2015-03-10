@@ -60,17 +60,19 @@ public class TestXmlHelper {
 
     public static void checkBookingEncoding(File file) {
         // implicit test
-        List<String> lines = file.text.readLines()
-        assertTrue lines[0].contains(ConfigHolder.Encoding.configured)
+        def encoding = ConfigHolder.Encoding.configured
+        List<String> lines = file.getText(encoding).readLines()
+        assertTrue lines[0].contains(encoding)
 
         //explicit test
         def itemExists = false
         lines.each {
             if (it.contains('<Item>')) {
                 itemExists = true
-                byte[] line = it.trim().getBytes(ConfigHolder.Encoding.configured)
+                byte[] line = it.trim().getBytes(encoding)
+                String ats = Arrays.toString(line)
                 //text = "<Item>book Über Döner und Dürüm</Item>" in ISO-8859-15
-                byte[] text = [60, 73, 116, 101, 109, 62, 98, 111, 111, 107, 32, 63, 98, 101, 114, 32, 68, 63, 110, 101, 114, 32, 117, 110, 100, 32, 68, 63, 114, 63, 109, 60, 47, 73, 116, 101, 109, 62]
+                byte[] text = [60, 73, 116, 101, 109, 62, 98, 111, 111, 107, 32, -4, 98, 101, 114, 32, 68, -10, 110, 101, 114, 32, 117, 110, 100, 32, 68, -4, 114, -4, 109, 60, 47, 73, 116, 101, 109, 62]
 
                 assertArrayEquals(line, text)
                 return

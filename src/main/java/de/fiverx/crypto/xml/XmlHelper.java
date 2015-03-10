@@ -77,13 +77,17 @@ public class XmlHelper {
         try (FileOutputStream fos = new FileOutputStream(file)) {
             TransformerFactory factory = TransformerFactory.newInstance();
             Transformer transformer = factory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.ENCODING, doc.getXmlEncoding());
+            String xmlEncoding = doc.getXmlEncoding();
+            transformer.setOutputProperty(OutputKeys.ENCODING, xmlEncoding);
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
             DOMSource source = new DOMSource(doc);
             StreamResult result = new StreamResult(fos);
             transformer.transform(source, result);
+            if (LOG.isInfoEnabled()) {
+              LOG.info("writeDocToFile: xml file written! file=" + file + "; encoding=" + xmlEncoding);
+            }
         }
     }
 
