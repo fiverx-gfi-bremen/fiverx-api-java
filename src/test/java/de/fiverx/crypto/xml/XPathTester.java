@@ -16,8 +16,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-import java.io.File;
-import java.security.Security;
+import java.security.*;
 import java.security.cert.X509Certificate;
 
 /**
@@ -30,43 +29,36 @@ import java.security.cert.X509Certificate;
 public class XPathTester {
 
     private Document document;
+    private KeyStore dotNetClientKeyStore;
+    private String clientAlias = "testclient";
+    private char[] clientPassword = "testc".toCharArray();
     private X509Certificate verficationCertificate;
-    private KeyStoreHelper dotNetClientKeyStore;
-    private KeyStoreHelper dotNetServerKeyStore;
 
     @Before
     public void init( ) throws Exception {
         org.apache.xml.security.Init.init();
         String xml = "<Request><data>Dies ist eine Testanfrage</data></Request>";
         Security.addProvider(new BouncyCastleProvider());
-        File dotNetClientKeystoreFile = new File("." +
-                "./FiverxLinkProductiveTest/testKeys/dotNet/TestDotNetClientZertifikat.pfx");
-        String dotNetClientPassword = "testc";
-        File dotNetServerKeystoreFile = new File("../FiverxLinkProductiveTest/testKeys/dotNet/TestDotNetRZZertifikat" +
-                ".pfx");
-        String dotNetServerPassword = "testr";
 
-        ConfigHolder.CustomerValues.KEYSTORE_TYPE = "PKCS12";
-        FilebasedKeyStorePersistenceHandler fileHandler = new FilebasedKeyStorePersistenceHandler
-                (dotNetClientKeystoreFile, dotNetClientPassword);
-        dotNetClientKeyStore = new KeyStoreHelper(fileHandler, dotNetClientPassword, "testclient", "testclient");
-        fileHandler = new FilebasedKeyStorePersistenceHandler(dotNetServerKeystoreFile, dotNetServerPassword);
-        dotNetServerKeyStore = new KeyStoreHelper(fileHandler, dotNetServerPassword, "testrz", "testrz");
-        verficationCertificate = dotNetClientKeyStore.getMyX509Certificate();
+        dotNetClientKeyStore = KeyStore.getInstance("PKCS12");
+        dotNetClientKeyStore.load(getClass().getResourceAsStream("/testKeys/TestDotNetClientZertifikat.pfx"),
+                                                                 "testc".toCharArray());
+
         document = XmlHelper.retrieveXml(xml);
         XmlSigningHelper xmlSigning = new XmlSigningHelperRsaSha1();
-        xmlSigning.addSignatureToDocument(document, dotNetClientKeyStore.getMyPrivateKey(),
-                                                    dotNetClientKeyStore.getMyX509Certificate());
-        System.out.println(XmlHelper.documentToString(document));
+        xmlSigning.addSignatureToDocument(document,
+                (PrivateKey) dotNetClientKeyStore.getKey(clientAlias, clientPassword),
+                (X509Certificate) dotNetClientKeyStore.getCertificate(clientAlias));
+        verficationCertificate = (X509Certificate) dotNetClientKeyStore.getCertificate(clientAlias);
     }
 
     @Test
-    public void encrypt () throws TransformerException {
+    public void encrypt () throws TransformerException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
         XmlCryptorHelper xmlCrypto = new XmlCryptoHelperRsaOaepAes256();
-        xmlCrypto.encrypt(document, dotNetClientKeyStore.getMyPublicKey());
+        xmlCrypto.encrypt(document, dotNetClientKeyStore.getCertificate(clientAlias).getPublicKey());
         System.err.println(XmlHelper.documentToString(document));
         System.err.println("********************************");
-        xmlCrypto.decrypt(document, dotNetClientKeyStore.getMyPrivateKey());
+        xmlCrypto.decrypt(document, (PrivateKey) dotNetClientKeyStore.getKey(clientAlias, clientPassword));
         System.err.println(XmlHelper.documentToString(document));
     }
 
