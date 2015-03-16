@@ -109,7 +109,7 @@ public class XmlCryptoHelperRsaOaepAes256 implements XmlCryptorHelper {
             // set the key info
             encryptedData.setKeyInfo(keyInfo);
             // finally, do the encryption job
-            xmlCipher.doFinal(document, rootElement, true);
+            xmlCipher.doFinal(document, document);
         } catch (Exception e) { // unfortunately, doFinal only throws Exception...
             throw new InternalCryptoException(e);
         }
@@ -180,8 +180,8 @@ public class XmlCryptoHelperRsaOaepAes256 implements XmlCryptorHelper {
             keyInfo.addKeyName("rsaKeyName"); // the keyname should be the api identity, e.g. the ik
             // set the key info
             encryptedData.setKeyInfo(keyInfo);
-            // finally, do the encryption job
-            xmlCipher.doFinal(document, rootElement, true);
+            // finally, do the encryption job and encrypt the whole thing
+            xmlCipher.doFinal(document, document);
         } catch (Exception e) { // unfortunately, doFinal only throws Exception...
             throw new InternalCryptoException(e);
         }
