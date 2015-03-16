@@ -25,7 +25,11 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
+ * added by Pascal Knueppel
+ *
  * A NamespaceContext implementation for digital signatures
+ *
+ * This class was directly copied from the Apache-Santuario test-library
  */
 public class DSNamespaceContext implements NamespaceContext {
     
