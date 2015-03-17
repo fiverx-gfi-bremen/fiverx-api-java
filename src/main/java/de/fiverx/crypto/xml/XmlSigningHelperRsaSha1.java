@@ -196,6 +196,7 @@ public class XmlSigningHelperRsaSha1 implements XmlSigningHelper{
             for (int y = 0; y < attributeMap.getLength(); y++) {
                 Node n = attributeMap.item(y);
                 if (n.getNodeValue().equals(uuid)) {
+                    // comment:bz: System.out, System.err und printStackTrace durch Logging ersetzen
                     System.out.println(n.getLocalName());
                     ((Element)signedElement).setIdAttributeNS(null, n.getLocalName(), true);
                 }

@@ -46,6 +46,9 @@ public class FiverxXmlCrypto {
      * @return the encrypted document
      */
     public Document encrypt(Document doc){
+
+        // comment:bz: lieber das Objekt unveränderbar machen (siehe setKeyStoreHelper()), und die andere Methode statisch machen.
+        // noch besser: brauche ich beide Methoden? Kann man den Anwender nicht auf eine einzige Variante "zwingen"?
         if (getKeyStoreHelper() == null) {
             throw new SecurityException("cannot decrypt document because keyStoreHelper is 'null'. Please use method:" +
                     " encrypt(Document, PublicKey)");
@@ -156,10 +159,13 @@ public class FiverxXmlCrypto {
         }
     }
 
+    // comment:bz: warum gibt es einen Getter für den Helper? Der sollte nur intern Verwendung finden!
     public KeyStoreHelper getKeyStoreHelper() {
         return keyStoreHelper;
     }
 
+    // comment:bz: warum kann der Helper nachträglich gesetzt werden? Es ist grundsätzlich besser, wenn die Objekte immutable sind. In welchen Fällen kann das
+    // Attribut nicht mit dem Konstruktor gesetzt werden?
     public void setKeyStoreHelper(KeyStoreHelper keyStoreHelper) {
         this.keyStoreHelper = keyStoreHelper;
     }

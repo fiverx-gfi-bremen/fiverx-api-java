@@ -1,6 +1,8 @@
 package de.fiverx.crypto.xml;
 
 import de.fiverx.crypto.ConfigHolder;
+import de.fiverx.crypto.InternalCryptoException;
+import org.apache.log4j.Logger;
 import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.apache.xml.security.keys.KeyInfo;
 import org.apache.xml.security.signature.XMLSignature;
@@ -19,10 +21,22 @@ import java.util.UUID;
  * author: Pascal Knueppel
  * created at: 16.03.2015.
  */
+
+
+
 public class FiverxXmlSigning {
+// comment:bz: Dieses Klasse ist teilweise durch kopieren einer "alten" Klasse entstanden. Wenn man die "alte" Klasse umbenennen und anpassen würde, bleibt die
+// Commit-Historie erhalten. Im jetzigen Stand der API kann man evtl. auch auf Deprecations verzichten. Die API ist noch im Fluss, man muss eigentlich noch damit rechnen,
+// dass auch größere, inkompatible Änderungen vorgenommen werden müssen.
+
+    /**
+    * Logger
+    */
+    private final static Logger LOG = Logger.getLogger(FiverxXmlSigning.class);
 
     private String signatureIdAttribute = "sigId";
 
+    // comment:bz:Die Klasse ist nicht "symetrisch" zu {{de.fiverx.crypto.xml.FiverxXmlCrypto}}, die einen {{KeyStoreHelper}} benötigt. So könnten alle Methoden hier auch statisch sein.
     public FiverxXmlSigning(){
 
     }
@@ -89,7 +103,18 @@ public class FiverxXmlSigning {
         try {
             sigElement = (Node) xpath.evaluate(expression, document, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
+            // comment:bz: e.printStacktrace sollte nie verwendet werden. Besser ist es, eine Bemerkung zu loggen, alternativ mit Stacktrace, z.B:
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("verifyEnvelopedSignature: XPath-Fehler!", e);
+            } else if (LOG.isDebugEnabled()) {
+                LOG.debug("verifyEnvelopedSignature: XPath-Fehler!" + e.getMessage());
+            }
+            // comment:bz: oder
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("verifyEnvelopedSignature: kein Signatur-Element gefunden!");
+            }
+            // comment:bz: kann ich denn mit sigElement = null sinnvoll weitermachen?
         }
         // remove the signature element from the document
         document.getDocumentElement().removeChild(sigElement);
@@ -103,26 +128,33 @@ public class FiverxXmlSigning {
         }
         // iterate over any reference element and get the attribute with the UUID. This is normally the Id or the URI
         // attribute.
+        // comment:bz: ein paar Leerzeilen machen den Code leserlicher, z.B:
         for (int x = 0; x < referenceElements.getLength(); x++) {
             Element referenceElement = (Element) referenceElements.item(x);
             String uuid = referenceElement.getAttribute("Id");
+
             if (uuid == null || uuid.trim().length() == 0) {
                 uuid = referenceElement.getAttribute("URI");
             }
+
             if (uuid == null || uuid.trim().length() == 0) {
                 throw new XMLSecurityException("No UUID Value was found in Reference Element");
             }
+
             // If the UUID was extraced successfully find all elements in the document that have an element with the
             // UUID as value.
             expression = ".//*[@*='" + uuid + "']";
             Node signedElement = null;
+
             try {
                 signedElement = (Node) xpath.evaluate(expression, document, XPathConstants.NODE);
             } catch (XPathExpressionException e) {
                 e.printStackTrace();
             }
+
             NamedNodeMap attributeMap = signedElement.getAttributes();
             // mark all elements with a fitting uuid that they are necessary for verifying the signature.
+
             for (int y = 0; y < attributeMap.getLength(); y++) {
                 Node n = attributeMap.item(y);
                 if (n.getNodeValue().equals(uuid)) {
@@ -131,11 +163,21 @@ public class FiverxXmlSigning {
             }
         }
         // create the xmlSignature element
+        // comment:bz wenn sigElement noch null ist (obige Exception wurde ja nur geloggt), dann wird hier eine XMLSecurityException geworfen, wenn ich das richtig gesehen habe.
         XMLSignature xmlSignature = new XMLSignature((Element) sigElement, "");
         // get the keyinfo so the certificate can be extracted
         KeyInfo ki = xmlSignature.getKeyInfo();
         if (ki == null) {
-            throw new XMLSecurityException("Keine KeyInfo und damit kein Zertifikat in der Signatur enthalten!");
+            // comment:bz: Wirf keine Exceptions aus Fremd-APIs weiter. Du bindest die Methoden-Signatur damit an Implementierungsdetails. Wenn man hier mal die Apache
+            // Implementierung gegen etwas anderes austauschen möchte, dann ändert sich die Signatur inkompatibel.
+
+            // comment:bz: Mein Vorschlag: Exceptions aus dem Crypto-Teil sind in der Regel fatal und verhindern eine weitere Ausführung. Ich würde vorschlagen (wie in den bisherigen
+            // Klassen getan), dass alle Exceptions mit {{de.fiverx.crypto.InternalCryptoException}} oder Ableitungen davon gewrappt werden. Wenn man den Fehler tatsächlich sinnvoll
+            // behandeln könnte, kann es eine spezialisierte Ableitung sein. Ansonsten sollte der Fehler zentral weiter oben verarbeitet werden, dann tut es die Basisklasse mit einer
+            // passenden Message
+
+            // throw new XMLSecurityException("Keine KeyInfo und damit kein Zertifikat in der Signatur enthalten!");
+            throw new InternalCryptoException("Keine KeyInfo und damit kein Zertifikat in der Signatur enthalten!");
         }
         // The signature can be verfied because the sigElement does remember its parent document.
         return xmlSignature.checkSignatureValue(ki.getX509Certificate());
@@ -267,7 +309,9 @@ public class FiverxXmlSigning {
      */
     @Deprecated
     public boolean verifyEnvelopingSignature (Document document) throws XMLSecurityException {
-        throw new XMLSecurityException("Enveloping Signature wird von Apache Santuario nicht unterstützt");
+        // comment:bz: keine unnötigen Informationen preis geben
+        // throw new XMLSecurityException("Enveloping Signature wird von Apache Santuario nicht unterstützt");
+        throw new XMLSecurityException("Enveloping Signature wird nicht unterstützt");
     }
 
     /**
@@ -283,6 +327,8 @@ public class FiverxXmlSigning {
         XPath xpath = xpf.newXPath();
         xpath.setNamespaceContext(new DSNamespaceContext());
         // Find the Signature Element
+
+        // comment:bz: duplicate code und hard coded Strings, z.B. mit {{retrieveCertificateFromSignature}}
         String expression = "//dsig:Signature[1]";
         Element sigElement;
         try {

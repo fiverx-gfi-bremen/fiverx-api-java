@@ -83,6 +83,7 @@ public class XmlHelper {
         dbf.setNamespaceAware(true);
         DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
         ByteArrayInputStream inputStream = new ByteArrayInputStream(doc.getBytes());
+        // comment:bz: Encoding hardcoded! Und warum UTF-8 ?
         Reader reader = new InputStreamReader(inputStream,"UTF-8");
         InputSource is = new InputSource(reader);
         is.setEncoding("UTF-8");
