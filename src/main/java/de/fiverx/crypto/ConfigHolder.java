@@ -19,6 +19,11 @@
 
 package de.fiverx.crypto;
 
+import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
+import org.apache.xml.security.c14n.Canonicalizer;
+import org.apache.xml.security.encryption.XMLCipher;
+import org.apache.xml.security.signature.XMLSignature;
+
 /**
  * Simple configuration holder with hardcoded elements.
  * <p/>
@@ -73,6 +78,37 @@ public class ConfigHolder {
 
         public static String getConfigured() {
             return CONFIGURED;
+        }
+    }
+
+    public static class XmlSigningHolder {
+        private static final String XML_SIGNATURE_ALGORITHM = XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA1;
+        private static final String XML_CANONICALZATION_METHOD = Canonicalizer.ALGO_ID_C14N_EXCL_OMIT_COMMENTS;
+        private static final String XML_DIGEST_METHOD = MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA1;
+
+        public static String getXmlSignatureAlgorithm() {
+            return XML_SIGNATURE_ALGORITHM;
+        }
+
+        public static String getXmlCanonicalzationMethod() {
+            return XML_CANONICALZATION_METHOD;
+        }
+
+        public static String getXmlDigestMethod() {
+            return XML_DIGEST_METHOD;
+        }
+    }
+
+    public static class XmlEncryptionHolder {
+        private static final String XML_ASYMMETRIC_ENCRYPTION = XMLCipher.RSA_OAEP;
+        private static final String XML_SYMMETRIC_ENCRYPTION = XMLCipher.AES_256;
+
+        public static String getXmlAsymmetricEncryption() {
+            return XML_ASYMMETRIC_ENCRYPTION;
+        }
+
+        public static String getXmlSymmetricEncryption() {
+            return XML_SYMMETRIC_ENCRYPTION;
         }
     }
 

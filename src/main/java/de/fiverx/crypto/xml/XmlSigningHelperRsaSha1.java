@@ -41,7 +41,11 @@ import java.util.UUID;
  * Time: 17:24
  *
  * This class is meant to add Signatures to documents and verify them
+ *
+ * @deprecated replaced by
+ *      {@link de.fiverx.crypto.xml.FiverxXmlSigning}
  */
+@Deprecated
 public class XmlSigningHelperRsaSha1 implements XmlSigningHelper{
 
     /**

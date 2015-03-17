@@ -33,12 +33,33 @@ import java.security.PublicKey;
  *
  * @author zeitler, knueppel
  * @since v1.0
+ *
+ * marked deprecated by Pascal Knueppel
+ * @deprecated replaced by
+ *      {@link de.fiverx.crypto.xml.FiverxXmlCrypto}
  */
+@Deprecated
 public interface XmlCryptorHelper {
 
     public void encrypt(Document document);
 
+    /**
+     * @param document the document to decrypt
+     *
+     * @deprecated replaced by
+     *      {@link de.fiverx.crypto.xml.FiverxXmlCrypto#decryptDocument(org.w3c.dom.Document, java.security.PrivateKey)}
+     */
+    @Deprecated
     public void decrypt(Document document);
+
+    /**
+     * @param document the document to decrypt
+     *
+     * @deprecated replaced by
+     *      {@link de.fiverx.crypto.xml.FiverxXmlCrypto#decryptDocument(org.w3c.dom.Document, java.security.PrivateKey)}
+     */
+    @Deprecated
+    public void decrypt(Document document, PrivateKey kek);
 
     /**
      * added by Pascal Knueppel
@@ -46,12 +67,5 @@ public interface XmlCryptorHelper {
      * @param publicKey the necessary public key to encrypt the document
      */
     public void encrypt(Document document, PublicKey publicKey);
-
-    /**
-     * added by Pascal Knueppel
-     * @param document the document to decrypt
-     * @param privateKey the necessary private key to decrypt the document
-     */
-    public void decrypt(Document document, PrivateKey privateKey);
 
 }

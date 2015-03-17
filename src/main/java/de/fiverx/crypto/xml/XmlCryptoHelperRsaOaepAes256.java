@@ -45,7 +45,12 @@ import java.security.PublicKey;
  * @since v1.0
  *
  * This class shall encrypt an XML-Document
+ *
+ * marked deprecated by Pascal Knueppel
+ * @deprecated replaced by
+ *      {@link de.fiverx.crypto.xml.FiverxXmlCrypto}
  */
+@Deprecated
 public class XmlCryptoHelperRsaOaepAes256 implements XmlCryptorHelper {
 
     /**
@@ -118,7 +123,11 @@ public class XmlCryptoHelperRsaOaepAes256 implements XmlCryptorHelper {
     /**
      * Decrypts a document based on the given keyStoreHelper
      * @param document the document that shall get decrypted
+     *
+     * @deprecated replaced by
+     *      {@link de.fiverx.crypto.xml.FiverxXmlCrypto#decryptDocument(org.w3c.dom.Document, java.security.PrivateKey)}
      */
+    @Deprecated
     @Override
     public void decrypt(Document document) {
         if (keyStoreHelper == null) {
@@ -129,7 +138,30 @@ public class XmlCryptoHelperRsaOaepAes256 implements XmlCryptorHelper {
             // retrieve my private RSA key
             PrivateKey caKek = keyStoreHelper.getMyPrivateKey();
             // enryption should be done for the first element (root element)
-            Element encryptedDataElement = (Element) document.getElementsByTagNameNS(EncryptionConstants.EncryptionSpecNS, EncryptionConstants._TAG_ENCRYPTEDDATA).item(0);
+            Element encryptedDataElement = (Element) document.getElementsByTagNameNS(
+                    EncryptionConstants.EncryptionSpecNS,
+                    EncryptionConstants._TAG_ENCRYPTEDDATA).item(0);
+            // create a new cipher instance (no further information, the cipher will know what to do)
+            XMLCipher xmlCipher = XMLCipher.getInstance();
+            // initialize the cipher for decryption; no key is provided, since the encrypted XML contains the key and everything else
+            xmlCipher.init(XMLCipher.DECRYPT_MODE, null);
+            // set the key for key decryption
+            xmlCipher.setKEK(caKek);
+            // finally, do the decryption job
+            xmlCipher.doFinal(document, encryptedDataElement);
+        } catch (Exception e) {
+            throw new InternalCryptoException(e);
+        }
+    }
+
+    @Override
+    public void decrypt(Document document, PrivateKey caKek) {
+        try {
+            // retrieve my private RSA key
+            // enryption should be done for the first element (root element)
+            Element encryptedDataElement = (Element) document.getElementsByTagNameNS(
+                    EncryptionConstants.EncryptionSpecNS,
+                    EncryptionConstants._TAG_ENCRYPTEDDATA).item(0);
             // create a new cipher instance (no further information, the cipher will know what to do)
             XMLCipher xmlCipher = XMLCipher.getInstance();
             // initialize the cipher for decryption; no key is provided, since the encrypted XML contains the key and everything else
@@ -186,35 +218,4 @@ public class XmlCryptoHelperRsaOaepAes256 implements XmlCryptorHelper {
             throw new InternalCryptoException(e);
         }
     }
-
-    /**
-     * added by Pascal Knueppel
-     *
-     * This method was added because the possibiliy of adding a key via InputStremas was missing. Like this The keys
-     * can be read in advance and then be given to this method as parameter to decrypt the message.
-     * @param document The document that should be decrypted
-     * @param caKek The rsa private key that will be used to decrypt the aes symmetric key that was used for
-     *              data encryption.
-     */
-    @Override
-    public void decrypt(Document document, PrivateKey caKek) {
-        try {
-            // enryption should be done for the first element (root element)
-            Element encryptedDataElement = (Element) document.getElementsByTagNameNS(
-                                                                    EncryptionConstants.EncryptionSpecNS,
-                                                                    EncryptionConstants._TAG_ENCRYPTEDDATA).item(0);
-            // create a new cipher instance (no further information, the cipher will know what to do)
-            XMLCipher xmlCipher = XMLCipher.getInstance();
-            // initialize the cipher for decryption; no key is provided, since the encrypted XML contains the
-            // key and everything else
-            xmlCipher.init(XMLCipher.DECRYPT_MODE, null);
-            // set the key for key decryption
-            xmlCipher.setKEK(caKek);
-            // finally, do the decryption job
-            xmlCipher.doFinal(document, encryptedDataElement);
-        } catch (Exception e) {
-            throw new InternalCryptoException(e);
-        }
-    }
-
 }

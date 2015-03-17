@@ -29,7 +29,12 @@ import java.security.cert.X509Certificate;
  * Author: Pascal Knueppel
  * Date: 18.02.2015
  * Time: 17:21
+ *
+ * marked deprecated by Pascal Knueppel
+ * @deprecated replaced by
+ *      {@link de.fiverx.crypto.xml.FiverxXmlSigning}
  */
+@Deprecated
 public interface XmlSigningHelper {
 
     /**
