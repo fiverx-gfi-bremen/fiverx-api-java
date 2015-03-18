@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.apache.xml.security.keys.KeyInfo;
 import org.apache.xml.security.signature.XMLSignature;
+import org.apache.xml.security.signature.XMLSignatureException;
 import org.apache.xml.security.transforms.Transforms;
 import org.w3c.dom.*;
 
@@ -90,45 +91,29 @@ public class FiverxXmlSigning {
      * @param document the document whose signature shall be verified
      * @return true if the signature fits to the given certificate in the signature (check the certificate first!),
      *         false else
-     * @throws org.apache.xml.security.exceptions.XMLSecurityException
+     * @throws de.fiverx.crypto.InternalCryptoException,
+     *         org.apache.xml.security.exceptions.XMLSecurityException
      */
-    public boolean verifyEnvelopedSignature (Document document) throws XMLSecurityException {
+    public boolean verifyEnvelopedSignature (Document document) throws InternalCryptoException, XMLSecurityException {
         XPathFactory xpf = XPathFactory.newInstance();
         XPath xpath = xpf.newXPath();
         xpath.setNamespaceContext(new DSNamespaceContext());
-        // Find the Signature Element
-        String expression = "//dsig:Signature[1]";
-        Node sigElement = null;
-        // find the signature element
-        try {
-            sigElement = (Node) xpath.evaluate(expression, document, XPathConstants.NODE);
-        } catch (XPathExpressionException e) {
-//            e.printStackTrace();
-            // comment:bz: e.printStacktrace sollte nie verwendet werden. Besser ist es, eine Bemerkung zu loggen, alternativ mit Stacktrace, z.B:
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("verifyEnvelopedSignature: XPath-Fehler!", e);
-            } else if (LOG.isDebugEnabled()) {
-                LOG.debug("verifyEnvelopedSignature: XPath-Fehler!" + e.getMessage());
-            }
-            // comment:bz: oder
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("verifyEnvelopedSignature: kein Signatur-Element gefunden!");
-            }
-            // comment:bz: kann ich denn mit sigElement = null sinnvoll weitermachen?
-        }
+        Node sigElement = retrieveSignatureElement(document);
+
         // remove the signature element from the document
         document.getDocumentElement().removeChild(sigElement);
-        expression = ".//ds:Reference[@Id][@URI]";
+        String expression = ".//ds:Reference[@Id][@URI]";
         NodeList referenceElements = null;
+
         // find the Reference nodes inside the signature element
         try {
             referenceElements = (NodeList) xpath.evaluate(expression, sigElement, XPathConstants.NODESET);
         } catch (XPathExpressionException e) {
             e.printStackTrace();
         }
+
         // iterate over any reference element and get the attribute with the UUID. This is normally the Id or the URI
         // attribute.
-        // comment:bz: ein paar Leerzeilen machen den Code leserlicher, z.B:
         for (int x = 0; x < referenceElements.getLength(); x++) {
             Element referenceElement = (Element) referenceElements.item(x);
             String uuid = referenceElement.getAttribute("Id");
@@ -138,7 +123,7 @@ public class FiverxXmlSigning {
             }
 
             if (uuid == null || uuid.trim().length() == 0) {
-                throw new XMLSecurityException("No UUID Value was found in Reference Element");
+                throw new InternalCryptoException("No UUID Value was found in Reference Element");
             }
 
             // If the UUID was extraced successfully find all elements in the document that have an element with the
@@ -163,20 +148,10 @@ public class FiverxXmlSigning {
             }
         }
         // create the xmlSignature element
-        // comment:bz wenn sigElement noch null ist (obige Exception wurde ja nur geloggt), dann wird hier eine XMLSecurityException geworfen, wenn ich das richtig gesehen habe.
         XMLSignature xmlSignature = new XMLSignature((Element) sigElement, "");
         // get the keyinfo so the certificate can be extracted
         KeyInfo ki = xmlSignature.getKeyInfo();
         if (ki == null) {
-            // comment:bz: Wirf keine Exceptions aus Fremd-APIs weiter. Du bindest die Methoden-Signatur damit an Implementierungsdetails. Wenn man hier mal die Apache
-            // Implementierung gegen etwas anderes austauschen möchte, dann ändert sich die Signatur inkompatibel.
-
-            // comment:bz: Mein Vorschlag: Exceptions aus dem Crypto-Teil sind in der Regel fatal und verhindern eine weitere Ausführung. Ich würde vorschlagen (wie in den bisherigen
-            // Klassen getan), dass alle Exceptions mit {{de.fiverx.crypto.InternalCryptoException}} oder Ableitungen davon gewrappt werden. Wenn man den Fehler tatsächlich sinnvoll
-            // behandeln könnte, kann es eine spezialisierte Ableitung sein. Ansonsten sollte der Fehler zentral weiter oben verarbeitet werden, dann tut es die Basisklasse mit einer
-            // passenden Message
-
-            // throw new XMLSecurityException("Keine KeyInfo und damit kein Zertifikat in der Signatur enthalten!");
             throw new InternalCryptoException("Keine KeyInfo und damit kein Zertifikat in der Signatur enthalten!");
         }
         // The signature can be verfied because the sigElement does remember its parent document.
@@ -226,7 +201,7 @@ public class FiverxXmlSigning {
             return XmlHelper.retrieveXml(XmlHelper.elementToString(xmlSignature.getElement()));
         } catch (Exception e) {
             e.printStackTrace();
-            throw new XMLSecurityException();
+            throw new InternalCryptoException(e);
         }
     }
 
@@ -237,13 +212,14 @@ public class FiverxXmlSigning {
      * @param signatureDocument the document containing the signature
      * @return true if the signature fits to the given certificate in the signature (check the certificate first!),
      *         false else
-     * @throws org.apache.xml.security.exceptions.XMLSecurityException
+     * @throws de.fiverx.crypto.InternalCryptoException
      *
      * @deprecated please use {@link #verifyEnvelopedSignature(org.w3c.dom.Document)}
      */
     @Deprecated
-    public boolean verifyDetachedSignature (Document document, Document signatureDocument) throws XMLSecurityException {
-        throw new XMLSecurityException("The verification of a detached signature is not supported");
+    public boolean verifyDetachedSignature (Document document, Document signatureDocument)
+            throws InternalCryptoException {
+        throw new InternalCryptoException("The verification of a detached signature is not supported");
     }
 
     /**
@@ -292,8 +268,7 @@ public class FiverxXmlSigning {
         try {
             return XmlHelper.retrieveXml(XmlHelper.elementToString(xmlSignature.getElement()));
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new XMLSecurityException();
+            throw new InternalCryptoException(e);
         }
     }
 
@@ -303,15 +278,13 @@ public class FiverxXmlSigning {
      * @param document the document whose signature shall be verified
      * @return true if the signature fits to the given certificate in the signature (check the certificate first!),
      *         false else
-     * @throws org.apache.xml.security.exceptions.XMLSecurityException
+     * @throws de.fiverx.crypto.InternalCryptoException
      *
      * @deprecated please use {@link #verifyEnvelopedSignature(org.w3c.dom.Document)}
      */
     @Deprecated
-    public boolean verifyEnvelopingSignature (Document document) throws XMLSecurityException {
-        // comment:bz: keine unnötigen Informationen preis geben
-        // throw new XMLSecurityException("Enveloping Signature wird von Apache Santuario nicht unterstützt");
-        throw new XMLSecurityException("Enveloping Signature wird nicht unterstützt");
+    public boolean verifyEnvelopingSignature (Document document) throws InternalCryptoException {
+        throw new InternalCryptoException("Enveloping Signature wird nicht unterstützt");
     }
 
     /**
@@ -323,20 +296,7 @@ public class FiverxXmlSigning {
      * @throws org.apache.xml.security.exceptions.XMLSecurityException
      */
     public boolean containsSignature (Document document) {
-        XPathFactory xpf = XPathFactory.newInstance();
-        XPath xpath = xpf.newXPath();
-        xpath.setNamespaceContext(new DSNamespaceContext());
-        // Find the Signature Element
-
-        // comment:bz: duplicate code und hard coded Strings, z.B. mit {{retrieveCertificateFromSignature}}
-        String expression = "//dsig:Signature[1]";
-        Element sigElement;
-        try {
-            sigElement = (Element) xpath.evaluate(expression, document, XPathConstants.NODE);
-        } catch (XPathExpressionException e) {
-            return false;
-        }
-        return sigElement != null;
+        return retrieveSignatureElement(document) != null;
     }
 
     /**
@@ -346,20 +306,28 @@ public class FiverxXmlSigning {
      * @return The certificate held by the signature element.
      * @throws org.apache.xml.security.exceptions.XMLSecurityException
      */
-    public X509Certificate retrieveCertificateFromSignature (Document document) throws XMLSecurityException {
+    public X509Certificate retrieveCertificateFromSignature (Document document)
+            throws XMLSecurityException {
+        Element sigElement = retrieveSignatureElement(document);
+        XMLSignature xmlSignature = new XMLSignature(sigElement, "");
+        KeyInfo ki = xmlSignature.getKeyInfo();
+        return ki.getX509Certificate();
+    }
+
+    private Element retrieveSignatureElement (Document document) {
         XPathFactory xpf = XPathFactory.newInstance();
         XPath xpath = xpf.newXPath();
         xpath.setNamespaceContext(new DSNamespaceContext());
         // Find the Signature Element
         String expression = "//dsig:Signature[1]";
-        Element sigElement;
         try {
-            sigElement = (Element) xpath.evaluate(expression, document, XPathConstants.NODE);
+            return (Element) xpath.evaluate(expression, document, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("verifyEnvelopedSignature: kein Signatur-Element gefunden!");
+                LOG.trace(e.getMessage(), e);
+            }
             return null;
         }
-        XMLSignature xmlSignature = new XMLSignature(sigElement, "");
-        KeyInfo ki = xmlSignature.getKeyInfo();
-        return ki.getX509Certificate();
     }
 }
