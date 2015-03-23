@@ -55,7 +55,12 @@ public class ConfigHolder {
 
         private static String CONFIGURED_KEY_ALG = "AES";
 
-        private static String CONFIGURED_CRYPT_ALG = "AES/CBC/PKCS7Padding";
+        /**
+         * Wie sich rausgestellt hat, sind PKCS5 und PKCS7 Padding in Java identisch. Das Problem ist, dass PKCS7
+         * Padding nur in ganz speziellen Fällen genutzt werden darf, so kann es des häufigeren vorkommen, dass wegen
+         * der Angabe von PKCS7 eien NoSuchAlgorithmException fliegt. Daher jetzt der Wechsel auf PKCS5
+         */
+        private static String CONFIGURED_CRYPT_ALG = "AES/CBC/PKCS5Padding";
 
         private static int CONFIGURED_KEY_LENGTH = 256;
 
