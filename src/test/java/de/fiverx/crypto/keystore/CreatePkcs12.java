@@ -1,5 +1,20 @@
-/**
- * 
+/*
+ * Copyright (c) 2015 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package de.fiverx.crypto.keystore;
 
@@ -7,9 +22,9 @@ package de.fiverx.crypto.keystore;
  * @author Thomas Probst, ARZ Darmstadt GmbH
  *
  */
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.Key;
@@ -26,6 +41,7 @@ import java.security.spec.RSAPrivateCrtKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Date;
 
+import de.fiverx.util.FileUtil;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -38,6 +54,11 @@ import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 
 class CertKeyPair {
@@ -65,98 +86,72 @@ class CertKeyPair {
 
 public class CreatePkcs12 {
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		
-		try {
-			System.out.println("### START ###");
-			
-			Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-			testKeyStore();
-			
-			System.out.println("### END ###");
-			
-		} catch (Exception e) {
-			System.out.println("### ERROR ###");
-			e.printStackTrace();
+	private final static File PKCS12_FILE = new File("build/tmp/pkcs12", "test.p12");
+
+	@Before
+	public void setUp() {
+		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+		File parent = PKCS12_FILE.getParentFile();
+		if (parent.exists()) {
+			FileUtil.deleteRecursively(parent);
 		}
+		parent.mkdir();
 	}
 
-	public static void testKeyStore() throws Exception{
-		
-		String filenameP12 =  "test.p12";
+	@Test
+	public void testKeyStore() throws Exception {
 		String keyStorePassword = "secret";
 		String clientKeyName = "301234561";
 		
-		try {
-			// -- CA
-		    CertKeyPair caCertKeyPair = testX509CreationForServer();
-		    KeyPair keyPairCA = caCertKeyPair.getKeyPair();
-		    PrivateKey caPrivateKey = keyPairCA.getPrivate();
-			X509Certificate caCert = caCertKeyPair.getX509Certificate();
-			String caIssuerDn = caCert.getIssuerDN().getName();
-			
-			// -- Apo
-			CertKeyPair customerCertKeyPair = testX509CreationForCustomer(caIssuerDn, caPrivateKey);
-			KeyPair keyPairApo = customerCertKeyPair.getKeyPair();
-			@SuppressWarnings("unused")
-			PublicKey publicKeyApo = keyPairApo.getPublic();
-			PrivateKey privateKeyApo = keyPairApo.getPrivate();
-			
-			X509Certificate customerCert = customerCertKeyPair.getX509Certificate();
-			
-			// cert order is important!!! (client,ca)
-			X509Certificate[] outChain = { customerCert, caCert };
+		// -- CA
+		CertKeyPair caCertKeyPair = testX509CreationForServer();
+		KeyPair keyPairCA = caCertKeyPair.getKeyPair();
+		PrivateKey caPrivateKey = keyPairCA.getPrivate();
+		X509Certificate caCert = caCertKeyPair.getX509Certificate();
+		String caIssuerDn = caCert.getIssuerDN().getName();
 
-			
-			// -------------------------------------------------------
-			// -- write p12-keystore (Customer Cert/ CA Cert/priv Key Customer)
-			// -------------------------------------------------------
-			KeyStore outStore = KeyStore.getInstance("PKCS12");
-			outStore.load(null, keyStorePassword.toCharArray());
-			outStore.setKeyEntry(
-					clientKeyName, 
-					privateKeyApo, 
-					keyStorePassword.toCharArray(), 
-					(java.security.cert.Certificate[]) outChain);
-			OutputStream outputStream = new FileOutputStream(filenameP12);
+		// -- Apo
+		CertKeyPair customerCertKeyPair = testX509CreationForCustomer(caIssuerDn, caPrivateKey);
+		KeyPair keyPairApo = customerCertKeyPair.getKeyPair();
+		@SuppressWarnings("unused")
+		PublicKey publicKeyApo = keyPairApo.getPublic();
+		PrivateKey privateKeyApo = keyPairApo.getPrivate();
+
+		X509Certificate customerCert = customerCertKeyPair.getX509Certificate();
+
+		// cert order is important!!! (client,ca)
+		X509Certificate[] outChain = { customerCert, caCert };
+
+		// -------------------------------------------------------
+		// -- write p12-keystore (Customer Cert/ CA Cert/priv Key Customer)
+		// -------------------------------------------------------
+		KeyStore outStore = KeyStore.getInstance("PKCS12");
+		outStore.load(null, keyStorePassword.toCharArray());
+		outStore.setKeyEntry(
+				clientKeyName,
+				privateKeyApo,
+				keyStorePassword.toCharArray(),
+				(java.security.cert.Certificate[]) outChain);
+
+		try(OutputStream outputStream = new FileOutputStream(PKCS12_FILE)) {
 			outStore.store(outputStream, keyStorePassword.toCharArray());
-			outputStream.flush();
-			outputStream.close();
-			// -------------------------------------------------------
-
-			
-			// -- check p12-keystore
-			KeyStore inStore = KeyStore.getInstance("PKCS12");
-			inStore.load(new FileInputStream(filenameP12), keyStorePassword.toCharArray());
-			Key key = outStore.getKey(clientKeyName, keyStorePassword.toCharArray());
-			if (privateKeyApo.equals(key) == false) {
-				throw new IOException("privKey Apo nicht im Keystore gefunden!");
-			}
-				
-			Certificate[] inChain = outStore.getCertificateChain(clientKeyName);
-			if (inChain == null) {
-				throw new IOException("CertificateChain(" + clientKeyName + ") nicht gefunden!");
-			}
-			if (outChain.length != inChain.length) {
-				throw new IOException("Chain length error!");
-			}
-			System.out.println("### OK ###");
-			
-		} catch (Exception e) {
-			System.out.println("### ERROR ###");
-			e.printStackTrace();
-			throw new AssertionError(e.getMessage());
 		}
+
+		// -- check p12-keystore
+		KeyStore inStore = KeyStore.getInstance("PKCS12");
+		try(FileInputStream fis = new FileInputStream(PKCS12_FILE)) {
+			inStore.load(fis, keyStorePassword.toCharArray());
+		}
+		Key key = outStore.getKey(clientKeyName, keyStorePassword.toCharArray());
+
+		assertEquals(privateKeyApo, key);
+
+		Certificate[] inChain = outStore.getCertificateChain(clientKeyName);
+
+		assertNotNull(inChain);
+		assertEquals(inChain.length, outChain.length);
 	}
 	
-	
-	//////////////////////// fiverx-api  File: StoreTest.groovy ///////////////////////////////////////////////
-	//////////////////////// fiverx-api  File: StoreTest.groovy ///////////////////////////////////////////////
-	//////////////////////// fiverx-api  File: StoreTest.groovy ///////////////////////////////////////////////
-	// testX509CreationForCustomer -> split to Server/Customer -> modified return
 	// return CertKeyPair
     private static CertKeyPair testX509CreationForServer() throws Exception {
         KeyPair caKeyPair = createRSAKeyPair();
@@ -182,14 +177,16 @@ public class CreatePkcs12 {
 		return new CertKeyPair(x509CertificateCustomer, customerKeyPair);
     }
 
+	//todo:in produktiven Code übernehmen!
     private static X509Certificate createX509SelfSignedCertificate(KeyPair keyPair, String issuerDnText) throws Exception {
         Date startDate = new Date(new Date().getTime() - 24L*60*60*1000);
         Date expiryDate = new Date(new Date().getTime() + 365L*24L*60*60*1000);
 
         return createSignedX509Certificate(issuerDnText, issuerDnText, startDate, expiryDate, keyPair.getPrivate(), keyPair.getPublic());
     }
-    
-	private static X509Certificate createSignedX509Certificate(String subjectDNText, String issuerDNText, Date startDate, Date expiryDate, PrivateKey signerPrivateKey, PublicKey subjectPublicKey) 
+
+	//todo:in produktiven Code übernehmen!
+	private static X509Certificate createSignedX509Certificate(String subjectDNText, String issuerDNText, Date startDate, Date expiryDate, PrivateKey signerPrivateKey, PublicKey subjectPublicKey)
     		throws Exception {
         X500Name subjectDN = new X500Name(subjectDNText);
         X500Name issuerDN =  new X500Name(issuerDNText);
@@ -203,6 +200,7 @@ public class CreatePkcs12 {
     }
 
 
+	//todo:in produktiven Code übernehmen!
     private static KeyPair createRSAKeyPair() throws Exception {
         RSAKeyPairGenerator gen = new RSAKeyPairGenerator();
         SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
@@ -210,9 +208,6 @@ public class CreatePkcs12 {
         AsymmetricCipherKeyPair keypair = gen.generateKeyPair();
         RSAKeyParameters publicKey = (RSAKeyParameters) keypair.getPublic();
         RSAPrivateCrtKeyParameters privateKey = (RSAPrivateCrtKeyParameters) keypair.getPrivate();
-        // used to get proper encoding for the certificate, bz:21.02.2015:not sure if still needed, since the example code is pretty old... guess not...
-//        RSAPublicKey pkKey = new RSAPublicKey(publicKey.getModulus(), publicKey.getExponent())
-        // JCE format needed for the certificate - because getEncoded() is necessary...
         PublicKey pubKey = KeyFactory.getInstance("RSA").generatePublic(
                 new RSAPublicKeySpec(publicKey.getModulus(), publicKey.getExponent()));
         // and this one for the KeyStore
